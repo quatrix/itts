@@ -1,6 +1,6 @@
 from redis import Redis
 from enum import IntEnum
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel
 from .RedisLua import RedisLua
 import json
 import cloudpickle
@@ -20,17 +20,14 @@ class Segment(BaseModel):
         deserilized = json.loads(serialized)
         return cls(**deserilized)
 
-    def get_pickled(self):
-        return self._pickled
-
 class TimeLord:
     def __init__(self, redis: Redis, key: str):
         self.redis = redis
         self.lua = RedisLua(redis)
         self.key = key
 
-    def insert_slice(self, id: int, timestamp: int, status: SliceStatus):
-        self.lua.eval('insert_slice', self.key, id, timestamp, int(status))
+    def insert_slice(self, timestamp: int, status: SliceStatus):
+        self.lua.eval('insert_slice', self.key, timestamp, int(status))
 
     def get_segments(self, start: int, end: int):
         segments = self.lua.eval('get_segments', self.key, start, end)

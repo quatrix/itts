@@ -20,7 +20,7 @@ def merge_to_segments(slices: list[Slice]):
 
     # in redis slices are stored in a sorted set
     # so we're sorting slices to replicate that
-    slices = sorted(slices)
+    slices = sorted(slices, key=lambda s: s.timestamp)
     segments = []
 
     last_status = slices[0].status
@@ -64,6 +64,6 @@ def test_naive():
     t = create_random_timelord()
 
     for s in slices:
-        t.insert_slice(id=s.timestamp, timestamp=s.timestamp, status=s.status)
+        t.insert_slice(timestamp=s.timestamp, status=s.status)
 
     assert t.get_segments(0, n) == expected_segments

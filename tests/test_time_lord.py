@@ -24,7 +24,7 @@ def test_with_one_slice():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
 
     expected = [
         Segment(start=5, end=5, status=SliceStatus.PENDING),
@@ -40,8 +40,8 @@ def test_with_one_slice_after_changing_status():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=5, status=SliceStatus.DONE)
 
     expected = [
         Segment(start=5, end=5, status=SliceStatus.DONE),
@@ -57,8 +57,8 @@ def test_inserting_another_slice_after():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=10, timestamp=10, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
 
     expected = [
         Segment(start=5, end=10, status=SliceStatus.PENDING),
@@ -74,8 +74,8 @@ def test_inserting_another_slice_before():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=10, timestamp=10, status=SliceStatus.PENDING)
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
 
     expected = [
         Segment(start=5, end=10, status=SliceStatus.PENDING),
@@ -92,9 +92,9 @@ def test_inserting_slice_between_two_slices():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=10, timestamp=10, status=SliceStatus.PENDING)
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=7, timestamp=7, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
 
     expected = [
         Segment(start=5, end=10, status=SliceStatus.PENDING),
@@ -112,8 +112,8 @@ def test_inserting_two_slices_of_different_statuses():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=10, timestamp=10, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
 
     expected = [
         Segment(start=5, end=5, status=SliceStatus.PENDING),
@@ -130,11 +130,11 @@ def test_inserting_another_done_slice_at_the_end():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=6, timestamp=6, status=SliceStatus.DONE)
-    t.insert_slice(id=7, timestamp=7, status=SliceStatus.PENDING)
-    t.insert_slice(id=10, timestamp=10, status=SliceStatus.DONE)
-    t.insert_slice(id=15, timestamp=15, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=6, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=15, status=SliceStatus.DONE)
 
     expected = [
         Segment(start=5, end=5, status=SliceStatus.PENDING),
@@ -155,11 +155,11 @@ def test_inserting_another_pending_slice_at_the_end():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=6, timestamp=6, status=SliceStatus.DONE)
-    t.insert_slice(id=7, timestamp=7, status=SliceStatus.PENDING)
-    t.insert_slice(id=10, timestamp=10, status=SliceStatus.DONE)
-    t.insert_slice(id=15, timestamp=15, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=6, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=15, status=SliceStatus.PENDING)
 
     expected = [
         Segment(start=5, end=5, status=SliceStatus.PENDING),
@@ -179,10 +179,10 @@ def test_inserting_another_pending_slice_at_the_begining():
     """
 
     t = create_random_timelord()
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=10, timestamp=10, status=SliceStatus.DONE)
-    t.insert_slice(id=15, timestamp=15, status=SliceStatus.PENDING)
-    t.insert_slice(id=2, timestamp=2, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=15, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=2, status=SliceStatus.PENDING)
 
     expected = [
         Segment(start=2, end=5, status=SliceStatus.PENDING),
@@ -202,11 +202,11 @@ def test_inserting_another_done_slice_at_the_begining():
 
     t = create_random_timelord()
 
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=10, timestamp=10, status=SliceStatus.DONE)
-    t.insert_slice(id=12, timestamp=12, status=SliceStatus.PENDING)
-    t.insert_slice(id=15, timestamp=15, status=SliceStatus.DONE)
-    t.insert_slice(id=2, timestamp=2, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=12, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=15, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=2, status=SliceStatus.DONE)
 
     expected = [
         Segment(start=2, end=2, status=SliceStatus.DONE),
@@ -227,8 +227,8 @@ def test_inserting_different_status_same_id():
 
     t = create_random_timelord()
 
-    t.insert_slice(id=10,timestamp=10, status=SliceStatus.PENDING)
-    t.insert_slice(id=10,timestamp=10, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
 
     expected = [
         Segment(start=10, end=10, status=SliceStatus.DONE),
@@ -249,11 +249,11 @@ def test_inserting_different_status_within_segment():
 
     t = create_random_timelord()
 
-    t.insert_slice(id=10,timestamp=10, status=SliceStatus.PENDING)
-    t.insert_slice(id=15,timestamp=15, status=SliceStatus.PENDING)
-    t.insert_slice(id=20,timestamp=20, status=SliceStatus.PENDING)
-    t.insert_slice(id=25,timestamp=25, status=SliceStatus.PENDING)
-    t.insert_slice(id=17,timestamp=17, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=15, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=20, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=25, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=17, status=SliceStatus.DONE)
 
     expected = [
         Segment(start=10, end=15, status=SliceStatus.PENDING),
@@ -273,13 +273,13 @@ def test_inserting_within_existing_slice_same_status():
 
     t = create_random_timelord()
 
-    t.insert_slice(id=5, timestamp=5, status=SliceStatus.PENDING)
-    t.insert_slice(id=10,timestamp=10, status=SliceStatus.PENDING)
-    t.insert_slice(id=10,timestamp=10, status=SliceStatus.DONE)
-    t.insert_slice(id=15,timestamp=15, status=SliceStatus.DONE)
-    t.insert_slice(id=17,timestamp=17, status=SliceStatus.PENDING)
-    t.insert_slice(id=20,timestamp=20, status=SliceStatus.PENDING)
-    t.insert_slice(id=12,timestamp=12, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=15, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=17, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=20, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=12, status=SliceStatus.DONE)
 
     expected = [
         Segment(start=5, end=5, status=SliceStatus.PENDING),

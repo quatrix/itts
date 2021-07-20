@@ -64,6 +64,7 @@ def test_inserting_another_slice_after():
         Segment(start=5, end=10, status=SliceStatus.PENDING),
     ]
 
+    print(t.get_segments(0, 20))
     assert t.get_segments(0, 1) == []
     assert t.get_segments(0, 20) == expected
 
@@ -264,11 +265,59 @@ def test_inserting_different_status_within_segment():
     assert t.get_segments(0, 1) == []
     assert t.get_segments(0, 30) == expected
 
-def test_inserting_within_existing_slice_same_status():
+def test_inserting_within_existing_segment_different_status():
     """
     if we already have a segment with a status
-    inserting a slice with same status that falls inside
-    that segment shouldn't change anything
+    inserting a slice with a different status that falls inside
+    that segment should split it to three parts
+    """
+
+    t = create_random_timelord()
+
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=15, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+
+    expected = [
+        Segment(start=5, end=5, status=SliceStatus.PENDING),
+        Segment(start=10, end=10, status=SliceStatus.DONE),
+        Segment(start=15, end=15, status=SliceStatus.PENDING),
+
+    ]
+
+    assert t.get_segments(0, 1) == []
+    assert t.get_segments(0, 25) == expected
+
+
+def test_inserting_within_existing_segment_with_multiple_slices_different_status():
+    """
+    if we already have a segment that made of multiple slices with same status
+    inserting a slice with a different status that falls inside
+    that segment should split it to three parts
+    """
+
+    t = create_random_timelord()
+
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=8, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=12, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=15, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+
+    expected = [
+        Segment(start=5, end=8, status=SliceStatus.PENDING),
+        Segment(start=10, end=10, status=SliceStatus.DONE),
+        Segment(start=12, end=15, status=SliceStatus.PENDING),
+    ]
+
+    assert t.get_segments(0, 1) == []
+    assert t.get_segments(0, 25) == expected
+
+def test_inserting_slice_at_the_edge_of_a_segment():
+    """
+    if we already have a segment that made of multiple slices with same status
+    inserting a slice with a different status that falls inside
+    that segment should split it to three parts
     """
 
     t = create_random_timelord()
@@ -276,17 +325,95 @@ def test_inserting_within_existing_slice_same_status():
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=10, status=SliceStatus.DONE)
-    t.insert_slice(timestamp=15, status=SliceStatus.DONE)
-    t.insert_slice(timestamp=17, status=SliceStatus.PENDING)
-    t.insert_slice(timestamp=20, status=SliceStatus.PENDING)
-    t.insert_slice(timestamp=12, status=SliceStatus.DONE)
 
     expected = [
         Segment(start=5, end=5, status=SliceStatus.PENDING),
-        Segment(start=10, end=15, status=SliceStatus.DONE),
-        Segment(start=17, end=20, status=SliceStatus.PENDING),
+        Segment(start=10, end=10, status=SliceStatus.DONE),
     ]
 
     assert t.get_segments(0, 1) == []
     assert t.get_segments(0, 25) == expected
 
+def test_inserting_slice_at_the_end_of_a_segment_multi_sliced():
+    """
+    if we already have a segment that made of multiple slices with same status
+    inserting a slice with a different status at the end of the segment
+    should shorten the segment to the prev slice and add another segment
+    """
+
+    t = create_random_timelord()
+
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+
+    expected = [
+        Segment(start=5, end=7, status=SliceStatus.PENDING),
+        Segment(start=10, end=10, status=SliceStatus.DONE),
+    ]
+
+    assert t.get_segments(0, 1) == []
+    assert t.get_segments(0, 25) == expected
+
+def test_inserting_slice_at_the_begining_of_a_segment_multi_sliced():
+    """
+    if we already have a segment that made of multiple slices with same status
+    inserting a slice with a different status at the end of the segment
+    should shorten the segment to the prev slice and add another segment
+    """
+
+    t = create_random_timelord()
+
+    t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=5, status=SliceStatus.DONE)
+
+    expected = [
+        Segment(start=5, end=5, status=SliceStatus.DONE),
+        Segment(start=7, end=10, status=SliceStatus.PENDING),
+    ]
+
+    assert t.get_segments(0, 1) == []
+    assert t.get_segments(0, 25) == expected
+
+
+def test_mmm():
+    t = create_random_timelord()
+
+    t.insert_slice(timestamp=0, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=3, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=4, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=2, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=1, status=SliceStatus.DONE)
+
+    expected = [
+        Segment(start=0, end=0, status=SliceStatus.PENDING),
+        Segment(start=1, end=3, status=SliceStatus.DONE),
+        Segment(start=4, end=4, status=SliceStatus.PENDING),
+    ]
+
+    assert t.get_segments(0, 25) == expected
+
+def test_mmm2():
+    t = create_random_timelord()
+
+    t.insert_slice(timestamp=1, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=4, status=SliceStatus.PENDING)
+    t.insert_slice(timestamp=0, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=2, status=SliceStatus.DONE)
+    t.insert_slice(timestamp=3, status=SliceStatus.DONE)
+
+    expected = [
+        Segment(start=0, end=0, status=SliceStatus.DONE),
+        Segment(start=1, end=1, status=SliceStatus.PENDING),
+        Segment(start=2, end=3, status=SliceStatus.DONE),
+        Segment(start=4, end=4, status=SliceStatus.PENDING),
+    ]
+
+
+    for s in t.get_segments(0, 25):
+        print(s)
+
+    assert t.get_segments(0, 25) == expected

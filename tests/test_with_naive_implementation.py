@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from redis import Redis
+import pytest
 import random
 import string
 
@@ -57,11 +58,14 @@ def test_naive():
     testing the real algorthim against a naive implementation
     """
 
-    n = 1000
+    n = 1000 
     slices = create_random_slices(n)
     expected_segments = merge_to_segments(slices)
 
     t = create_random_timelord()
+
+    for s in slices:
+        print(s)
 
     for s in slices:
         t.insert_slice(timestamp=s.timestamp, status=s.status)

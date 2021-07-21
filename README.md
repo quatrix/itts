@@ -1,55 +1,61 @@
-# Islands in the stream
+# Islands In The Stream
 
 # What?
 
+merged events with timestamp and status (slices) to continues segments in time of the same status 
+from this (slices):
+![slices](/svgs/slices.svg)
+
+to this (segments):
+![segments](/svgs/segments.svg)
+
+* this is done continously, on every insert of a new slice (or status update of an existing slice) segments are adjusted.
+* internally it's implmented on Redis Sorted Sets where timestamp used as score, so time ranges queries are cheap.
 
 # Why?
 
+it could be an interesting way of monitoring/visualizing progress that has time grouping meaning.
 
-# Limitations
+for example if we have a worker that executes tasks we might want to know not only number of tasks done but also if we have segments of done, i.e day/week/month of done.
 
-In the current implementation when a slice is inserted it tries to find
-the relevant segments and update just them. this works fine while we have
-a bunch of slices with different statuses as it will create many segments.
+# Example
 
-```
-requests = 100_000
-total time: 5.62 seconds
-rate: 17777 requests/second
-```
+```python
+from itts import ITTS, SliceStatus
+from redis import Redis
 
-Problem starts where we have long streches of the same status, for example
-when we have 10000 slices all with status 'DONE', basically for every new 
-slice we need to go over all slices! so it's N^2, not ideal.
+t = ITTS(Redis(), 'some_key')
 
-```
-requests = 10_000
-total time: 28.34 seconds
-rate: 352 requests/second
+# inserting slices
 
-last insert time: 6.45 ms
-```
+t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
+t.insert_slice(timestamp=6, status=SliceStatus.DONE)
+t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
+t.insert_slice(timestamp=10, status=SliceStatus.DONE)
+t.insert_slice(timestamp=15, status=SliceStatus.DONE)
 
-basically doubling the requests, halfs the rate
+# get a range of segments
 
-```
-requets = 20_000
-total time: 125.36 seconds 
-rate: 159 requests/second
-last insert time: 13.09 ms
+t.get_segments(start=5, end=20)
 ```
 
+# Preformance
 
-## Possible solutions
-* write a more sophisticated merging mechanism
-* maybe have a max size per segment, for example segment can't be longer than a day
-* do the merging lazily, not on every insert either on demand (with caching until a new slice is inserted) or after X inserts or T time passes
+Tested on a Apple Silicon Macbook Pro with Redis running locally (not in docker)
 
-## More sophisticated merging mechanism
+Both tests inserting slices in random order
 
-When a new slice arrives find the segments closes to it
-* if it's same status and after/before them, merge them with it
-* if it's a different status, add a new segment after/before it
-* if it's same status in the middle of a segment - do nothing
-* if it's a different status in the middle of a segment get the slices before and after 
-  it, remove the segment and create 3 new segments [before][now][after] using the slices.
+
+## status is the same across silces
+```
+[requests: 20000] total time: 1.33 seconds | rate: 14995.78 requests/second
+```
+
+## status is randomized (pending or done)
+```
+[requests: 20000] total time: 1.67 seconds | rate: 12009.92 requests/second
+```
+
+# Future work
+
+* 

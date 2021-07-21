@@ -4,11 +4,11 @@ import pytest
 import random
 import string
 
-from time_lord import TimeLord, SliceStatus, Segment
+from itts import ITTS, SliceStatus, Segment
 
-def create_random_timelord():
+def create_random_itts():
     random_key = ''.join(random.choices(string.ascii_uppercase + string.digits, k=32))
-    return TimeLord(Redis(), f'tl::{random_key}')
+    return ITTS(Redis(), f'tl::{random_key}')
 
 class Slice(BaseModel):
     timestamp: int
@@ -62,12 +62,38 @@ def test_naive():
     slices = create_random_slices(n)
     expected_segments = merge_to_segments(slices)
 
-    t = create_random_timelord()
-
-    for s in slices:
-        print(s)
+    t = create_random_itts()
 
     for s in slices:
         t.insert_slice(timestamp=s.timestamp, status=s.status)
 
     assert t.get_segments(0, n) == expected_segments
+
+
+def test_naive_all_done_one_pending_in_the_middle():
+    """
+    Testing a sequence of slices where all are done and one is pending
+    this should create 3 segments [pending][done][pending]
+    """
+
+    n = 1000 
+
+    slices = [Slice(timestamp=t, status=SliceStatus.PENDING) for t in list(range(n))]
+    slices[n//2].status = SliceStatus.DONE
+    random.shuffle(slices)
+
+    expected_segments = merge_to_segments(slices)
+
+    t = create_random_itts()
+
+    for s in slices:
+        t.insert_slice(timestamp=s.timestamp, status=s.status)
+
+    actual = t.get_segments(0, n)
+
+    assert actual == expected_segments
+    assert actual == [
+        Segment(start=0, end=499, status=SliceStatus.PENDING),
+        Segment(start=500, end=500, status=SliceStatus.DONE),
+        Segment(start=501, end=999, status=SliceStatus.PENDING),
+    ]

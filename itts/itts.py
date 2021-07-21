@@ -20,7 +20,7 @@ class Segment(BaseModel):
         deserilized = json.loads(serialized)
         return cls(**deserilized)
 
-class TimeLord:
+class ITTS:
     def __init__(self, redis: Redis, key: str):
         self.redis = redis
         self.lua = RedisLua(redis)

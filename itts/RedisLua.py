@@ -11,7 +11,7 @@ class RedisLua:
         self.register()
 
     def getLuaPath(self):
-        return pkg_resources.resource_filename('time_lord', 'islands_in_the_stream.lua')
+        return pkg_resources.resource_filename('itts', 'islands_in_the_stream.lua')
 
     def file_get_contents(self, filename):
         with open(filename) as f:

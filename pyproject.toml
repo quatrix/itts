@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "time_lord"
+name = "itts"
 version = "0.1.0"
-description = ""
+description = "islands in the stream"
 authors = ["quatrix <evil.legacy@gmail.com>"]
 
 [tool.poetry.dependencies]

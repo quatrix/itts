@@ -2,11 +2,11 @@ import random
 import string
 from redis import Redis
 
-from time_lord import TimeLord, SliceStatus, Segment
+from itts import ITTS, SliceStatus, Segment
 
-def create_random_timelord():
+def create_random_itts():
     random_key = ''.join(random.choices(string.ascii_uppercase + string.digits, k=32))
-    return TimeLord(Redis(), f'tl::{random_key}')
+    return ITTS(Redis(), f'tl::{random_key}')
 
 
 def test_empty():
@@ -14,7 +14,7 @@ def test_empty():
     no slices should return no segments
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     assert t.get_segments(0, 1) == []
 
@@ -23,7 +23,7 @@ def test_with_one_slice():
     one slice should return one segment
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
 
     expected = [
@@ -39,7 +39,7 @@ def test_with_one_slice_after_changing_status():
     we should have one segment which is done
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=5, status=SliceStatus.DONE)
 
@@ -56,7 +56,7 @@ def test_inserting_another_slice_after():
     then the segment will be the duration between both slices and it will be pending
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
 
@@ -74,7 +74,7 @@ def test_inserting_another_slice_before():
     then the segment will be the duration between both slices and it will be pending
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
 
@@ -92,7 +92,7 @@ def test_inserting_slice_between_two_slices():
     the minimum timestamp and ends with the maximum timestamp
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
@@ -112,7 +112,7 @@ def test_inserting_two_slices_of_different_statuses():
     they should be ordered by id
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=10, status=SliceStatus.DONE)
 
@@ -130,7 +130,7 @@ def test_inserting_another_done_slice_at_the_end():
     inserting another slice of same status should extend last segment
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=6, status=SliceStatus.DONE)
     t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
@@ -155,7 +155,7 @@ def test_inserting_another_pending_slice_at_the_end():
     segment at the end
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=6, status=SliceStatus.DONE)
     t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
@@ -179,7 +179,7 @@ def test_inserting_another_pending_slice_at_the_begining():
     inserting another slice of same status before it should extend first segment
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=10, status=SliceStatus.DONE)
     t.insert_slice(timestamp=15, status=SliceStatus.PENDING)
@@ -201,7 +201,7 @@ def test_inserting_another_done_slice_at_the_begining():
     create another segment of that status before the first segment
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=10, status=SliceStatus.DONE)
@@ -226,7 +226,7 @@ def test_inserting_different_status_same_id():
     should replace previous slice
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=10, status=SliceStatus.DONE)
@@ -248,7 +248,7 @@ def test_inserting_different_status_within_segment():
     of the new status
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=15, status=SliceStatus.PENDING)
@@ -272,7 +272,7 @@ def test_inserting_within_existing_segment_different_status():
     that segment should split it to three parts
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=15, status=SliceStatus.PENDING)
@@ -296,7 +296,7 @@ def test_inserting_within_existing_segment_with_multiple_slices_different_status
     that segment should split it to three parts
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=8, status=SliceStatus.PENDING)
@@ -320,7 +320,7 @@ def test_inserting_slice_at_the_edge_of_a_segment():
     that segment should split it to three parts
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=10, status=SliceStatus.PENDING)
@@ -341,7 +341,7 @@ def test_inserting_slice_at_the_end_of_a_segment_multi_sliced():
     should shorten the segment to the prev slice and add another segment
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
@@ -363,7 +363,7 @@ def test_inserting_slice_at_the_begining_of_a_segment_multi_sliced():
     should shorten the segment to the prev slice and add another segment
     """
 
-    t = create_random_timelord()
+    t = create_random_itts()
 
     t.insert_slice(timestamp=5, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=7, status=SliceStatus.PENDING)
@@ -379,8 +379,8 @@ def test_inserting_slice_at_the_begining_of_a_segment_multi_sliced():
     assert t.get_segments(0, 25) == expected
 
 
-def test_mmm():
-    t = create_random_timelord()
+def test_inserting_slice_should_expend_previous_segment_from_begining():
+    t = create_random_itts()
 
     t.insert_slice(timestamp=0, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=3, status=SliceStatus.DONE)
@@ -396,8 +396,8 @@ def test_mmm():
 
     assert t.get_segments(0, 25) == expected
 
-def test_mmm2():
-    t = create_random_timelord()
+def test_inserting_slice_should_expend_previous_segment_at_the_end():
+    t = create_random_itts()
 
     t.insert_slice(timestamp=1, status=SliceStatus.PENDING)
     t.insert_slice(timestamp=4, status=SliceStatus.PENDING)

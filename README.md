@@ -4,9 +4,11 @@
 
 merged events with timestamp and status (slices) to continues segments in time of the same status 
 from this (slices):
+
 ![slices](/svgs/slices.svg)
 
 to this (segments):
+
 ![segments](/svgs/segments.svg)
 
 * this is done continously, on every insert of a new slice (or status update of an existing slice) segments are adjusted.
@@ -58,4 +60,4 @@ Both tests inserting slices in random order
 
 # Future work
 
-* 
+* segments can be used to `reduce()` other things from slices, for example counting them.
